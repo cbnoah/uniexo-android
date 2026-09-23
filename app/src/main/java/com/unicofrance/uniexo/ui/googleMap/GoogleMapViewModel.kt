@@ -5,11 +5,14 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
+import com.unicofrance.uniexo.data.local.database.entities.Container
 import com.unicofrance.uniexo.data.repositories.ContainerRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class GoogleMapViewModel(
     private val containerRepository: ContainerRepository,
@@ -17,6 +20,19 @@ class GoogleMapViewModel(
     private val _location = MutableStateFlow<LatLng?>(null)
 
     val location = _location.asStateFlow()
+
+    private val _locations = MutableStateFlow<List<Container>>(listOf())
+    val locations = _locations.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            containerRepository.getAll().collect { containers ->
+                _locations.value = containers
+                println("containers")
+                println(containers)
+            }
+        }
+    }
 
     private val _permissions = MutableStateFlow(PermissionsUiState())
     val permissions = _permissions.asStateFlow()
