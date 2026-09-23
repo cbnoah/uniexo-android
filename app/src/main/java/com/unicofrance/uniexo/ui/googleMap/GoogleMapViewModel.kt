@@ -28,8 +28,6 @@ class GoogleMapViewModel(
         viewModelScope.launch {
             containerRepository.getAll().collect { containers ->
                 _locations.value = containers
-                println("containers")
-                println(containers)
             }
         }
     }
@@ -64,6 +62,18 @@ class GoogleMapViewModel(
                 hasCoarseLocation = results[Manifest.permission.ACCESS_COARSE_LOCATION]
                     ?: currentState.hasCoarseLocation
             )
+        }
+    }
+
+    fun getUserPosition(context: Context) {
+        if (!permissions.value.hasLocationPermissions) {
+            return
+        }
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null) {
+                _location.value = LatLng(location.latitude, location.longitude)
+            }
         }
     }
 }
