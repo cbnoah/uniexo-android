@@ -38,8 +38,8 @@ class UniExoApplication : Application() {
             this,
             AppDatabase::class.java, "database"
         ).addCallback(object : RoomDatabase.Callback() {
-            override fun onOpen(db: SupportSQLiteDatabase) {
-                super.onOpen(db)
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
 
                 Executors.newSingleThreadExecutor().execute {
                     prepopulateDb(applicationContext, db)
