@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -27,15 +29,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.graphics.Canvas
+import androidx.annotation.DrawableRes
+import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.MapsInitializer
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
+import com.unicofrance.uniexo.R
 import com.unicofrance.uniexo.ui.MainActivity
 import com.unicofrance.uniexo.ui.lib.SvgIcon
+import androidx.core.graphics.createBitmap
 
 @Composable
 fun GoogleMapScreen(
     modifier: Modifier = Modifier,
-    viewModel: GoogleMapViewModel
+    viewModel: GoogleMapViewModel,
+    onNavigationToDetail: (String) -> Unit
 ) {
     val context: Context = LocalContext.current
 
@@ -43,10 +60,13 @@ fun GoogleMapScreen(
 
     val location by viewModel.location.collectAsStateWithLifecycle()
 
+    val containersLocation by viewModel.locations.collectAsStateWithLifecycle()
+
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
         viewModel.onPermissionsResult(results)
+        viewModel.getUserPosition(context)
     }
 
     val mapProperties = MapProperties(
@@ -61,17 +81,62 @@ fun GoogleMapScreen(
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 )
             )
+        } else {
+            viewModel.getUserPosition(context)
         }
+    }
+
+    val defaultLocation = LatLng(46.506111, 2.457778)
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(
+            location ?: defaultLocation,
+            if (location != null) 15f else 6f
+        )
+    }
+
+    LaunchedEffect(location) {
+        location?.let { userLocation ->
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(userLocation, 15f)
+            )
+        }
+    }
+
+    val pinBitmapDescriptor = remember(context) {
+        bitmapDescriptorFromVector(context, R.drawable.map_pin)
     }
 
     Box(
         modifier = modifier
     ) {
         GoogleMap(
+            cameraPositionState = cameraPositionState,
             modifier = Modifier.fillMaxSize(),
             properties = mapProperties,
             contentPadding = PaddingValues(top = 20.dp)
-        )
+        ) {
+            containersLocation.forEach { container ->
+                key(container.id) {
+                    val container = container
+                    Marker(
+                        title = container.label,
+                        snippet = container.description,
+                        state = rememberUpdatedMarkerState(
+                            LatLng(
+                                container.latitude,
+                                container.longitude
+                            )
+                        ),
+                        icon = pinBitmapDescriptor,
+                        onClick = {
+                            onNavigationToDetail(container.id)
+                            true
+                        }
+                    )
+                }
+            }
+        }
 
         if (!permission.hasLocationPermissions) {
             FloatingActionButton(
@@ -79,14 +144,19 @@ fun GoogleMapScreen(
                     .align(Alignment.BottomStart)
                     .padding(bottom = 10.dp)
                     .scale(0.4f)
-                    .size(100.dp).border(
+                    .size(100.dp)
+                    .border(
                         shape = RectangleShape, width = 1.dp,
                         color = Color.Transparent
                     ),
                 containerColor = Color(0xAAFFFFFF),
                 shape = RectangleShape,
                 onClick = {
-                    if (!shouldShowRequestPermissionRationale(context as MainActivity, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    if (!shouldShowRequestPermissionRationale(
+                            context as MainActivity,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        )
+                    ) {
                         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                             data = Uri.fromParts("package", context.packageName, null)
                         }
@@ -108,4 +178,19 @@ fun GoogleMapScreen(
             }
         }
     }
+}
+
+private fun bitmapDescriptorFromVector(
+    context: Context,
+    @DrawableRes vectorResId: Int
+): BitmapDescriptor? {
+    MapsInitializer.initialize(context)
+    val drawable = ContextCompat.getDrawable(context, vectorResId) ?: return null
+    val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth/2 else 1
+    val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight/2 else 1
+    drawable.setBounds(0, 0, width, height)
+    val bitmap = createBitmap(width, height)
+    val canvas = Canvas(bitmap)
+    drawable.draw(canvas)
+    return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
