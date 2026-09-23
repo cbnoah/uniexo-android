@@ -18,7 +18,7 @@ fun prepopulateDb(context: Context, db: SupportSQLiteDatabase) {
         db.beginTransaction()
 
         try {
-            val regex: Regex = ",(?=(?:(?:[^\"]*\"){2})*[^\"]*\$)".toRegex()
+            val regex: Regex = ",(?=(?:(?:[^\"]*\"){2})*[^\"]*$)".toRegex()
             reader.readLine()
             var line: String? = reader.readLine()
 
@@ -28,16 +28,17 @@ fun prepopulateDb(context: Context, db: SupportSQLiteDatabase) {
                     val query =
                         """INSERT OR IGNORE INTO Container (id, longitude, latitude, label, producingPlaceLabel, description, streamLabel, streamColor, iconUrl, creationDatetime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
                     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                    val address = values[5].removePrefix('"'.toString()).removeSuffix('"'.toString())
 
                     db.execSQL(
                         query,
-                        arrayOf(
+                        arrayOf<Any>(
                             values[0].trim(),
                             values[1].trim().toDouble(),
                             values[2].trim().toDouble(),
                             values[3].trim(),
                             values[4].trim(),
-                            values[5].trim(),
+                            address,
                             values[6].trim(),
                             values[7].trim(),
                             values[8].trim(),
