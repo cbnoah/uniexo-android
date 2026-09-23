@@ -2,13 +2,17 @@ package com.unicofrance.uniexo
 
 import android.app.Application
 import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import com.unicofrance.uniexo.data.local.database.AppDatabase
+import com.unicofrance.uniexo.data.local.database.prepopulateDb
 import com.unicofrance.uniexo.data.remote.Api
 import com.unicofrance.uniexo.data.repositories.ContainerRepository
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class UniExoApplication : Application() {
@@ -33,7 +37,15 @@ class UniExoApplication : Application() {
         Room.databaseBuilder(
             this,
             AppDatabase::class.java, "database"
-        ).build()
+        ).addCallback(object : RoomDatabase.Callback() {
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+
+                Executors.newSingleThreadExecutor().execute {
+                    prepopulateDb(applicationContext, db)
+                }
+            }
+        }).build()
     }
 
     val containerRepository by lazy {
