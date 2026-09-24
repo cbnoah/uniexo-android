@@ -1,6 +1,7 @@
 package com.unicofrance.uniexo.ui.lib
 
 import androidx.compose.foundation.Image
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,4 +44,10 @@ fun SvgIcon(
         contentDescription = null,
         modifier = modifier
     )
+
+    if (painter.state is AsyncImagePainter.State.Loading) {
+        CircularProgressIndicator(
+            modifier = modifier
+        )
+    }
 }
