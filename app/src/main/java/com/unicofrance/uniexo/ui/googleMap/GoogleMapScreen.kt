@@ -3,11 +3,15 @@ package com.unicofrance.uniexo.ui.googleMap
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.graphics.Canvas
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +23,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -28,10 +34,9 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import android.graphics.Canvas
-import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.BitmapDescriptor
@@ -44,9 +49,10 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberUpdatedMarkerState
 import com.unicofrance.uniexo.R
+import com.unicofrance.uniexo.data.local.database.entities.Container
 import com.unicofrance.uniexo.ui.MainActivity
+import com.unicofrance.uniexo.ui.detail.MarkerInfo
 import com.unicofrance.uniexo.ui.lib.SvgIcon
-import androidx.core.graphics.createBitmap
 
 @Composable
 fun GoogleMapScreen(
@@ -55,6 +61,10 @@ fun GoogleMapScreen(
     onNavigationToDetail: (String) -> Unit
 ) {
     val context: Context = LocalContext.current
+
+    var showMarkerInfo by remember { mutableStateOf(false) }
+
+    var markerInfoContainer by remember { mutableStateOf<Container?>(null) }
 
     val permission by viewModel.permissions.collectAsState()
 
@@ -114,7 +124,7 @@ fun GoogleMapScreen(
             cameraPositionState = cameraPositionState,
             modifier = Modifier.fillMaxSize(),
             properties = mapProperties,
-            contentPadding = PaddingValues(top = 20.dp)
+            contentPadding = PaddingValues(vertical = 20.dp)
         ) {
             containersLocation.forEach { container ->
                 key(container.id) {
@@ -130,14 +140,14 @@ fun GoogleMapScreen(
                         ),
                         icon = pinBitmapDescriptor,
                         onClick = {
-                            onNavigationToDetail(container.id)
+                            markerInfoContainer = container
+                            showMarkerInfo = true
                             true
                         }
                     )
                 }
             }
         }
-
         if (!permission.hasLocationPermissions) {
             FloatingActionButton(
                 modifier = Modifier
@@ -177,6 +187,23 @@ fun GoogleMapScreen(
                 )
             }
         }
+        if (showMarkerInfo) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = null,
+                        indication = null
+                    ) {
+                        showMarkerInfo = false
+                        markerInfoContainer = null
+                    }
+            ) {
+                Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+                    MarkerInfo(markerInfoContainer, onNavigationToDetail, modifier = Modifier)
+                }
+            }
+        }
     }
 }
 
@@ -186,8 +213,8 @@ private fun bitmapDescriptorFromVector(
 ): BitmapDescriptor? {
     MapsInitializer.initialize(context)
     val drawable = ContextCompat.getDrawable(context, vectorResId) ?: return null
-    val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth/2 else 1
-    val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight/2 else 1
+    val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth / 2 else 1
+    val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight / 2 else 1
     drawable.setBounds(0, 0, width, height)
     val bitmap = createBitmap(width, height)
     val canvas = Canvas(bitmap)
