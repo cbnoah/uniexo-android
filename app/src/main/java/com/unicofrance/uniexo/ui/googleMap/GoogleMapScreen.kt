@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapsInitializer
@@ -72,6 +74,10 @@ fun GoogleMapScreen(
 
     val containersLocation by viewModel.locations.collectAsStateWithLifecycle()
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
+
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
@@ -83,19 +89,6 @@ fun GoogleMapScreen(
         isMyLocationEnabled = permission.hasLocationPermissions,
     )
 
-    LaunchedEffect(Unit) {
-        if (!viewModel.hasPermissions(context).hasLocationPermissions) {
-            launcher.launch(
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
-        } else {
-            viewModel.getUserPosition(context)
-        }
-    }
-
     val defaultLocation = LatLng(46.506111, 2.457778)
 
     val cameraPositionState = rememberCameraPositionState {
@@ -103,6 +96,26 @@ fun GoogleMapScreen(
             location ?: defaultLocation,
             if (location != null) 15f else 6f
         )
+    }
+
+    LaunchedEffect(lifecycleState) {
+        if (lifecycleState == Lifecycle.State.RESUMED) {
+            if (viewModel.hasPermissions(context).hasLocationPermissions) viewModel.getUserPosition(
+                context
+            )
+        }
+        if (lifecycleState == Lifecycle.State.STARTED) {
+            if (!viewModel.hasPermissions(context).hasLocationPermissions) {
+                launcher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            } else {
+                viewModel.getUserPosition(context)
+            }
+        }
     }
 
     LaunchedEffect(location) {
