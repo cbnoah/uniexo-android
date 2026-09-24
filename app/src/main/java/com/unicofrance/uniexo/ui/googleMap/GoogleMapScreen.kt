@@ -8,6 +8,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -255,7 +256,10 @@ fun GoogleMapScreen(
                 )
             }
         }
-        if (showMarkerInfo) {
+        AnimatedVisibility(
+            visible = showMarkerInfo,
+            enter = androidx.compose.animation.slideInVertically { it },
+            exit = androidx.compose.animation.slideOutVertically { it }) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
