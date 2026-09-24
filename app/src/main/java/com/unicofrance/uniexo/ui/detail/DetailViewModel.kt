@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class DetailViewModel(containerRepository: ContainerRepository, containerId: String?) :
+class DetailViewModel(containerRepository: ContainerRepository, val containerId: String?) :
     ViewModel() {
     private val _container = MutableStateFlow<Container?>(null)
     val container = _container.asStateFlow()
