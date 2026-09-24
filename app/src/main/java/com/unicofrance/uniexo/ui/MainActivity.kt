@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -61,9 +62,12 @@ class MainActivity : ComponentActivity() {
                 }
             ) {
                 composable("map") {
+                    val mapViewModel: GoogleMapViewModel = viewModel {
+                        GoogleMapViewModel(containerRepository = app.containerRepository)
+                    }
                     GoogleMapScreen(
                         modifier = Modifier.fillMaxSize(),
-                        viewModel = GoogleMapViewModel(containerRepository = app.containerRepository),
+                        viewModel = mapViewModel,
                         onNavigationToDetail = { id ->
                             navController.navigate("detail/$id")
                         }
@@ -71,16 +75,20 @@ class MainActivity : ComponentActivity() {
                 }
                 composable("detail/{id}") { backStackEntry ->
                     val id = backStackEntry.arguments?.getString("id")
+                    val detailViewModel: DetailViewModel = viewModel {
+                        DetailViewModel(
+                            containerRepository = app.containerRepository,
+                            containerId = id
+                        )
+                    }
+
                     DetailScreen(
                         modifier = Modifier.fillMaxSize(),
 
                         backToMap = {
                             navController.popBackStack()
                         },
-                        viewModel = DetailViewModel(
-                            containerRepository = app.containerRepository,
-                            containerId = id
-                        )
+                        viewModel = detailViewModel
                     )
                 }
             }
