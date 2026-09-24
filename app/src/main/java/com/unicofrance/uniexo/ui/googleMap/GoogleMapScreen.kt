@@ -4,12 +4,10 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.graphics.Canvas
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -34,15 +32,10 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.createBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.MapsInitializer
-import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -60,6 +53,7 @@ import com.unicofrance.uniexo.data.local.database.entities.Container
 import com.unicofrance.uniexo.ui.MainActivity
 import com.unicofrance.uniexo.ui.detail.MarkerInfo
 import com.unicofrance.uniexo.ui.lib.SvgIcon
+import com.unicofrance.uniexo.utils.bitmapDescriptorFromVector
 import kotlinx.coroutines.launch
 
 @SuppressLint("PotentialBehaviorOverride")
@@ -279,19 +273,4 @@ fun GoogleMapScreen(
             }
         }
     }
-}
-
-private fun bitmapDescriptorFromVector(
-    context: Context,
-    @DrawableRes vectorResId: Int
-): BitmapDescriptor? {
-    MapsInitializer.initialize(context)
-    val drawable = ContextCompat.getDrawable(context, vectorResId) ?: return null
-    val width = if (drawable.intrinsicWidth > 0) drawable.intrinsicWidth / 2 else 1
-    val height = if (drawable.intrinsicHeight > 0) drawable.intrinsicHeight / 2 else 1
-    drawable.setBounds(0, 0, width, height)
-    val bitmap = createBitmap(width, height)
-    val canvas = Canvas(bitmap)
-    drawable.draw(canvas)
-    return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
