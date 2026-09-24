@@ -1,7 +1,6 @@
 package com.unicofrance.uniexo.ui.detail
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,23 +11,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.unicofrance.uniexo.R
 import com.unicofrance.uniexo.ui.lib.SvgIcon
 import com.unicofrance.uniexo.utils.parseHexColor
 import java.util.Calendar
@@ -44,6 +37,7 @@ fun DetailScreen(
     val containerDate =
         Calendar.getInstance().apply { time = Date((container?.creationDatetime ?: 0) * 1000) }
 
+    // Error page
     if (container == null) {
         Box(
             modifier = modifier
@@ -74,6 +68,7 @@ fun DetailScreen(
         }
     }
 
+    // Detail page
     if (container != null) {
         Column(
             modifier = modifier
@@ -157,52 +152,6 @@ fun DetailScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun BackButton(
-    backToMap: (String) -> Unit,
-    containerId: String? = null,
-) {
-    IconButton(
-        modifier = Modifier.border(1.dp, Color.Gray, MaterialTheme.shapes.large),
-        onClick = { backToMap(containerId ?: "") }
-    ) {
-        Icon(
-            modifier = Modifier.size(24.dp),
-            painter = painterResource(R.drawable.cross),
-            contentDescription = "Back to Map"
-        )
-    }
-}
-
-@Composable
-fun DetailInfos(label: String, content: String?, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .border(1.dp, Color.Gray, MaterialTheme.shapes.large)
-            .background(Color(0xFFF4F4F4), MaterialTheme.shapes.large)
-    ) {
-
-        Column(
-            modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(
-                4.dp,
-                Alignment.CenterVertically
-            )
-        ) {
-            Text(
-                text = label,
-                fontWeight = FontWeight.Light,
-                fontSize = MaterialTheme.typography.bodyMedium.fontSize
-            )
-            Text(
-                text = content ?: "",
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-                color = Color(0xFF3A3B3F)
-            )
         }
     }
 }
