@@ -34,7 +34,7 @@ import com.unicofrance.uniexo.utils.parseHexColor
 
 @Composable
 fun MarkerInfo(
-    container: Container?,
+    container: Container,
     onNavigationToDetail: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -42,7 +42,6 @@ fun MarkerInfo(
     Box(
         modifier = modifier
             .padding(horizontal = 15.dp)
-            .padding(bottom = 25.dp)
             .height(100.dp)
             .fillMaxWidth()
             .shadow(elevation = 4.dp, shape = RoundedCornerShape(8.dp))
@@ -51,9 +50,7 @@ fun MarkerInfo(
                 shape = RoundedCornerShape(8.dp)
             )
             .clickable {
-                container?.id?.let { id ->
-                    onNavigationToDetail(id)
-                }
+                onNavigationToDetail(container.id)
             }
     ) {
         Row(
@@ -64,12 +61,12 @@ fun MarkerInfo(
         ) {
             Box(
                 modifier = Modifier.background(
-                    parseHexColor(container?.streamColor),
+                    parseHexColor(container.streamColor),
                     MaterialTheme.shapes.extraLarge
                 )
             ) {
                 SvgIcon(
-                    url = container?.iconUrl ?: "",
+                    url = container.iconUrl ?: "",
                     modifier = Modifier.size(80.dp)
                 )
             }
@@ -81,7 +78,7 @@ fun MarkerInfo(
                 verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Top),
             ) {
                 Text(
-                    text = container?.label ?: "",
+                    text = container.label,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -89,7 +86,7 @@ fun MarkerInfo(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = container?.description ?: "",
+                    text = container.description,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Light,
                     color = Color.Black,
