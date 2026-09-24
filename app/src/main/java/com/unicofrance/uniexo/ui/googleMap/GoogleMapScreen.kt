@@ -1,6 +1,7 @@
 package com.unicofrance.uniexo.ui.googleMap
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
@@ -9,7 +10,6 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -22,9 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,17 +45,25 @@ import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.maps.android.clustering.ClusterManager
+import com.google.maps.android.clustering.algo.NonHierarchicalDistanceBasedAlgorithm
+import com.google.maps.android.clustering.algo.PreCachingAlgorithmDecorator
+import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapEffect
 import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MapsComposeExperimentalApi
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberUpdatedMarkerState
 import com.unicofrance.uniexo.R
 import com.unicofrance.uniexo.data.local.database.entities.Container
 import com.unicofrance.uniexo.ui.MainActivity
 import com.unicofrance.uniexo.ui.detail.MarkerInfo
 import com.unicofrance.uniexo.ui.lib.SvgIcon
+import kotlinx.coroutines.launch
 
+@SuppressLint("PotentialBehaviorOverride")
+@OptIn(MapsComposeExperimentalApi::class)
 @Composable
 fun GoogleMapScreen(
     modifier: Modifier = Modifier,
@@ -64,19 +72,29 @@ fun GoogleMapScreen(
 ) {
     val context: Context = LocalContext.current
 
+    // Marker Popup variables
+
     var showMarkerInfo by remember { mutableStateOf(false) }
 
     var markerInfoContainer by remember { mutableStateOf<Container?>(null) }
 
+    // User permission and location variables
+
     val permission by viewModel.permissions.collectAsState()
+
+    val mapProperties = MapProperties(
+        isMyLocationEnabled = permission.hasLocationPermissions,
+    )
 
     val location by viewModel.location.collectAsStateWithLifecycle()
 
-    val containersLocation by viewModel.locations.collectAsStateWithLifecycle()
+    // Lifecycle variables
 
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateFlow.collectAsState()
 
-    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // Permissions launcher
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -85,9 +103,7 @@ fun GoogleMapScreen(
         viewModel.getUserPosition(context)
     }
 
-    val mapProperties = MapProperties(
-        isMyLocationEnabled = permission.hasLocationPermissions,
-    )
+    // Camera position variables
 
     val defaultLocation = LatLng(46.506111, 2.457778)
 
@@ -100,9 +116,9 @@ fun GoogleMapScreen(
 
     LaunchedEffect(lifecycleState) {
         if (lifecycleState == Lifecycle.State.RESUMED) {
-            if (viewModel.hasPermissions(context).hasLocationPermissions) viewModel.getUserPosition(
-                context
-            )
+            if (viewModel.hasPermissions(context).hasLocationPermissions) {
+                viewModel.getUserPosition(context)
+            }
         }
         if (lifecycleState == Lifecycle.State.STARTED) {
             if (!viewModel.hasPermissions(context).hasLocationPermissions) {
@@ -130,6 +146,13 @@ fun GoogleMapScreen(
         bitmapDescriptorFromVector(context, R.drawable.map_pin)
     }
 
+    // Containers Info for ClusterManager
+
+    val clusterItems by viewModel.clusterItems.collectAsStateWithLifecycle()
+
+    var clusterManager by remember { mutableStateOf<ClusterManager<MarkerClusterItem>?>(null) }
+
+    // Build
     Box(
         modifier = modifier
     ) {
@@ -139,25 +162,63 @@ fun GoogleMapScreen(
             properties = mapProperties,
             contentPadding = PaddingValues(vertical = 20.dp)
         ) {
-            containersLocation.forEach { container ->
-                key(container.id) {
-                    val container = container
-                    Marker(
-                        title = container.label,
-                        snippet = container.description,
-                        state = rememberUpdatedMarkerState(
-                            LatLng(
-                                container.latitude,
-                                container.longitude
-                            )
-                        ),
-                        icon = pinBitmapDescriptor,
-                        onClick = {
-                            markerInfoContainer = container
-                            showMarkerInfo = true
-                            true
+            MapEffect(Unit) { map ->
+                val manager = ClusterManager<MarkerClusterItem>(context, map).apply {
+                    renderer =
+                        object : DefaultClusterRenderer<MarkerClusterItem>(context, map, this) {
+                            override fun onBeforeClusterItemRendered(
+                                item: MarkerClusterItem,
+                                markerOptions: MarkerOptions
+                            ) {
+                                pinBitmapDescriptor?.let { markerOptions.icon(it) }
+                                super.onBeforeClusterItemRendered(item, markerOptions)
+                            }
+                        }.apply {
+                            minClusterSize = 5
                         }
-                    )
+                    algorithm =
+                        PreCachingAlgorithmDecorator(NonHierarchicalDistanceBasedAlgorithm())
+
+                    setOnClusterClickListener { cluster ->
+                        coroutineScope.launch {
+                            cameraPositionState.animate(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    cluster.position,
+                                    cameraPositionState.position.zoom + 2f
+                                )
+                            )
+                        }
+                        true
+                    }
+
+                    setOnClusterItemClickListener { item ->
+                        if (item != null) {
+                            coroutineScope.launch {
+                                cameraPositionState.animate(
+                                    CameraUpdateFactory.newLatLngZoom(
+                                        item.position,
+                                        17f
+                                    )
+                                )
+                            }
+                            markerInfoContainer = item.container
+                            showMarkerInfo = true
+                        }
+                        true
+                    }
+                }
+
+                map.setOnCameraIdleListener(manager)
+                map.setOnMarkerClickListener(manager)
+
+                clusterManager = manager
+            }
+
+            LaunchedEffect(clusterItems, clusterManager) {
+                clusterManager?.let { manager ->
+                    manager.clearItems()
+                    manager.addItems(clusterItems)
+                    manager.cluster()
                 }
             }
         }
