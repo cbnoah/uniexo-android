@@ -8,6 +8,7 @@ import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import com.unicofrance.uniexo.data.local.database.AppDatabase
 import com.unicofrance.uniexo.data.local.database.prepopulateDb
 import com.unicofrance.uniexo.data.remote.Api
+import com.unicofrance.uniexo.data.remote.ApiService
 import com.unicofrance.uniexo.data.repositories.ContainerRepository
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -46,6 +47,10 @@ class UniExoApplication : Application() {
                 }
             }
         }).build()
+    }
+
+    val apiService by lazy {
+        ApiService(api)
     }
 
     val containerRepository by lazy {
