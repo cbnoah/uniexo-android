@@ -1,0 +1,155 @@
+package com.unicofrance.uniexo.ui.detail
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.unicofrance.uniexo.ui.lib.SvgIcon
+import com.unicofrance.uniexo.utils.parseHexColor
+import java.util.Calendar
+import java.util.Date
+
+@Composable
+fun DetailScreen(
+    modifier: Modifier = Modifier,
+    backToMap: (String) -> Unit,
+    viewModel: DetailViewModel
+) {
+    val container by viewModel.container.collectAsStateWithLifecycle()
+    val containerDate =
+        Calendar.getInstance().apply { time = Date((container?.creationDatetime ?: 0) * 1000) }
+
+    if (container == null) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            BackButton(
+                backToMap = backToMap,
+                containerId = ""
+            )
+            Column(
+                modifier = modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Conteneur introuvable",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = MaterialTheme.typography.titleLarge.fontSize
+                )
+                Text(
+                    text = "Impossible de récupérer les informations pour le container avec l'identifiant : ${viewModel.containerId}",
+                    fontWeight = FontWeight.Light,
+                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+
+    if (container != null) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(top = 50.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier.background(
+                            parseHexColor(container?.streamColor),
+                            MaterialTheme.shapes.large
+                        )
+                    ) {
+                        SvgIcon(
+                            url = container?.iconUrl ?: "",
+                            modifier = Modifier.size(80.dp)
+                        )
+                    }
+                    Text(
+                        text = container?.label ?: "",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                BackButton(backToMap, container?.id)
+            }
+            HorizontalDivider(Modifier, DividerDefaults.Thickness, DividerDefaults.color)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                DetailInfosTextBox(
+                    label = "ID",
+                    content = container?.id,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    DetailInfosTextBox(
+                        label = "Latitude",
+                        content = container?.latitude?.toString()?.take(7),
+                        modifier = Modifier.weight(1f)
+                    )
+                    DetailInfosTextBox(
+                        label = "Longitude",
+                        content = container?.longitude?.toString()?.take(8),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                DetailInfosTextBox(
+                    label = "Flux du contenant",
+                    content = container?.streamLabel,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                DetailInfosTextBox(
+                    label = "Date de création",
+                    content = containerDate.get(Calendar.DAY_OF_MONTH)
+                        .toString() + "/" +
+                            (containerDate.get(Calendar.MONTH) + 1).toString() + "/" +
+                            containerDate.get(
+                                Calendar.YEAR
+                            ).toString(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
