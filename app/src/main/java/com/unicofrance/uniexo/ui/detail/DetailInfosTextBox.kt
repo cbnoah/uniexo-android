@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun DetailInfos(label: String, content: String?, modifier: Modifier = Modifier) {
+fun DetailInfosTextBox(label: String, content: String?, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .border(1.dp, Color.Gray, MaterialTheme.shapes.large)

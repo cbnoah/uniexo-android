@@ -26,8 +26,6 @@ class GoogleMapViewModel(
 
     private val _locations = MutableStateFlow<List<Container>>(listOf())
 
-    val locations = _locations.asStateFlow()
-
     private val _clusterItems = MutableStateFlow<List<MarkerClusterItem>>(listOf())
 
     val clusterItems = _clusterItems.asStateFlow()
@@ -94,8 +92,6 @@ class GoogleMapViewModel(
     fun containerAtSameLocation(latitude: Double, longitude: Double) {
         _containersAtSamePosition.value = emptyList()
         _containersAtSamePosition.value = _locations.value.filter { container ->
-            println("Checking container at (${container.latitude}, ${container.longitude})")
-            println("Against ($latitude, $longitude)")
             container.latitude == latitude && container.longitude == longitude
         }
     }
