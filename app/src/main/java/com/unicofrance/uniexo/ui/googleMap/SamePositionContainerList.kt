@@ -64,7 +64,7 @@ fun SamePositionContainerList(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Container Info Unavailable",
+                        text = "Information du container introuvable",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center

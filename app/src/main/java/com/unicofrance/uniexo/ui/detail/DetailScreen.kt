@@ -53,12 +53,12 @@ fun DetailScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Container not found",
+                    text = "Conteneur introuvable",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = MaterialTheme.typography.titleLarge.fontSize
                 )
                 Text(
-                    text = "Unable to retrieve info for the container with the id : ${viewModel.containerId}",
+                    text = "Impossible de récupérer les informations pour le container avec l'identifiant : ${viewModel.containerId}",
                     fontWeight = FontWeight.Light,
                     fontSize = MaterialTheme.typography.bodyMedium.fontSize,
                     textAlign = TextAlign.Center
@@ -115,7 +115,7 @@ fun DetailScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                DetailInfos(
+                DetailInfosTextBox(
                     label = "ID",
                     content = container?.id,
                     modifier = Modifier.fillMaxWidth()
@@ -123,23 +123,23 @@ fun DetailScreen(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    DetailInfos(
+                    DetailInfosTextBox(
                         label = "Latitude",
                         content = container?.latitude?.toString()?.take(7),
                         modifier = Modifier.weight(1f)
                     )
-                    DetailInfos(
+                    DetailInfosTextBox(
                         label = "Longitude",
                         content = container?.longitude?.toString()?.take(8),
                         modifier = Modifier.weight(1f)
                     )
                 }
-                DetailInfos(
-                    label = "Label du lieu production",
-                    content = container?.producingPlaceLabel,
+                DetailInfosTextBox(
+                    label = "Flux du contenant",
+                    content = container?.streamLabel,
                     modifier = Modifier.fillMaxWidth()
                 )
-                DetailInfos(
+                DetailInfosTextBox(
                     label = "Date de création",
                     content = containerDate.get(Calendar.DAY_OF_MONTH)
                         .toString() + "/" +
