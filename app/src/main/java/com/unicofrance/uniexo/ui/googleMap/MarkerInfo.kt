@@ -1,4 +1,4 @@
-package com.unicofrance.uniexo.ui.detail
+package com.unicofrance.uniexo.ui.googleMap
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,6 +32,12 @@ import com.unicofrance.uniexo.data.local.database.entities.Container
 import com.unicofrance.uniexo.ui.lib.SvgIcon
 import com.unicofrance.uniexo.utils.parseHexColor
 
+/**
+ * Displays marker information such as its name and its address and can redirect to the details page by pressing on it
+ * @param com.unicofrance.uniexo.data.local.database.entities.Container container: The container to display
+ * @param onNavigationToDetail: The function to navigate to the detail page
+ * @param modifier: The modifier to apply to the container
+ **/
 @Composable
 fun MarkerInfo(
     container: Container,
@@ -66,7 +72,7 @@ fun MarkerInfo(
                 )
             ) {
                 SvgIcon(
-                    url = container.iconUrl ?: "",
+                    url = container.iconUrl,
                     modifier = Modifier.size(80.dp)
                 )
             }
