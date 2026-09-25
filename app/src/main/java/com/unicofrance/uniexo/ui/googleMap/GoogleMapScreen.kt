@@ -79,7 +79,7 @@ fun GoogleMapScreen(
 
     // Marker Popup variables
 
-    var showMarkerInfo by remember { mutableStateOf(false) }
+    val showMarkerInfo = remember { mutableStateOf(false) }
 
     val containerAtSamePosition by viewModel.containersAtSamePosition.collectAsStateWithLifecycle()
 
@@ -210,7 +210,7 @@ fun GoogleMapScreen(
                                 item.container.latitude,
                                 item.container.longitude
                             )
-                            showMarkerInfo = true
+                            showMarkerInfo.value = true
                         }
                         true
                     }
@@ -270,61 +270,6 @@ fun GoogleMapScreen(
             }
         }
 
-        AnimatedVisibility(
-            visible = showMarkerInfo,
-            enter = androidx.compose.animation.slideInVertically { it },
-            exit = androidx.compose.animation.slideOutVertically { it }) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        interactionSource = null,
-                        indication = null
-                    ) {
-                        showMarkerInfo = false
-                    }
-            ) {
-                if (containerAtSamePosition.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(horizontal = 15.dp)
-                            .padding(bottom = 25.dp)
-                            .height(100.dp)
-                            .fillMaxWidth()
-                            .shadow(elevation = 4.dp, shape = RoundedCornerShape(8.dp))
-                            .background(
-                                Color.White,
-                                shape = RoundedCornerShape(8.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Container Info Unavailable",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 25.dp),
-                        verticalArrangement = Arrangement.spacedBy(
-                            8.dp,
-                            Alignment.CenterVertically
-                        ),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        containerAtSamePosition.let { containers ->
-                            containers.forEach { container ->
-                                MarkerInfo(container, onNavigationToDetail, modifier = Modifier)
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        SamePositionContainerList(showMarkerInfo, containerAtSamePosition, onNavigationToDetail)
     }
 }
