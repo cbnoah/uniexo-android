@@ -20,6 +20,13 @@ import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import com.unicofrance.uniexo.ui.MainActivity
 import com.unicofrance.uniexo.ui.lib.SvgIcon
 
+
+/**
+ * Displays a button to activate the location permission
+ * @param context: The context to use
+ * @param launcher: The launcher to use to launch the permission request
+ * @param modifier: The modifier to apply to the button
+ */
 @Composable
 fun PositionActivationButton(
     context: Context,

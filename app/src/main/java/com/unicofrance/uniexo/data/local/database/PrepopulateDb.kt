@@ -10,6 +10,11 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 
+/**
+ * Prepopulate the database with the containers.csv file
+ * @param context: The context to use
+ * @param db: The database to prepopulate
+ */
 fun prepopulateDb(context: Context, db: SupportSQLiteDatabase) {
     try {
         val inputStream = context.assets.open("database/containers.csv")
@@ -28,7 +33,8 @@ fun prepopulateDb(context: Context, db: SupportSQLiteDatabase) {
                     val query =
                         """INSERT OR IGNORE INTO Container (id, longitude, latitude, label, producingPlaceLabel, description, streamLabel, streamColor, iconUrl, creationDatetime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"""
                     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                    val address = values[5].removePrefix('"'.toString()).removeSuffix('"'.toString())
+                    val address =
+                        values[5].removePrefix('"'.toString()).removeSuffix('"'.toString())
 
                     db.execSQL(
                         query,

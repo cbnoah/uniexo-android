@@ -25,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.unicofrance.uniexo.data.local.database.entities.Container
-import com.unicofrance.uniexo.ui.detail.MarkerInfo
 import kotlin.collections.forEach
 
 @Composable

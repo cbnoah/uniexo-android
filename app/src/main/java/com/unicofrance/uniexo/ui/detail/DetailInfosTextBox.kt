@@ -15,6 +15,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * Displays a box with a label and a content
+ * @param label: The label to display
+ * @param content: The content to display
+ * @param modifier: The modifier to apply to the box
+ */
 @Composable
 fun DetailInfosTextBox(label: String, content: String?, modifier: Modifier = Modifier) {
     Column(
