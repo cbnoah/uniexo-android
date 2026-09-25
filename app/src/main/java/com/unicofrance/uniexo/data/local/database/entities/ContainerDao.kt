@@ -10,6 +10,9 @@ interface ContainerDao {
     @Query("SELECT * FROM container")
     fun getAll(): Flow<List<Container>>
 
+    @Query("SELECT * FROM container WHERE id = :id")
+    fun getById(id: String): Flow<Container>
+
     @Insert
     suspend fun insert(container: Container)
 

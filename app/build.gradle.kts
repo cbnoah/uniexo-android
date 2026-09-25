@@ -3,7 +3,9 @@ import java.util.Properties
 
 val localProps = Properties()
 val localPropsFile = rootProject.file("local.properties")
-if (localPropsFile.exists()) { localProps.load(localPropsFile.inputStream()) }
+if (localPropsFile.exists()) {
+    localProps.load(localPropsFile.inputStream())
+}
 
 plugins {
     alias(libs.plugins.ksp)
@@ -40,11 +42,12 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "1.8"
     }
     buildFeatures {
         compose = true
@@ -52,6 +55,10 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation.compose)
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -71,6 +78,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.svg)
     implementation(libs.maps.compose)
+    implementation("com.google.maps.android:maps-compose-utils:4.3.3")
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.retrofit)
